@@ -1,0 +1,44 @@
+<?php
+session_start();
+include('config/config.php');
+//login 
+if (isset($_POST['addCustomer'])) {
+    //Prevent Posting Blank Values
+    if (empty($_POST["customer_phoneno"]) || empty($_POST["customer_name"]) || empty($_POST['customer_email']) || empty($_POST['customer_password'])) {
+        $err = "Blank Values Not Accepted";
+    } else {
+        $customer_name = $_POST['customer_name'];
+        if(!preg_match("/^[a-zA-Z-']*$/",$customer_name)){
+            $err="Only letters and white spaces allowed";    
+        }
+        $customer_phoneno = $_POST['customer_phoneno'];
+        if(!preg_match("/^[0-9]*$/",$customer_phoneno)){
+            $err="Only Numeric value is allowed";
+        }
+        elseif(strlen($customer_phoneno) !=10){
+            $err="Phone number must contain 10 digits";
+        }
+        $customer_email = $_POST['customer_email'];
+        $customer_password = sha1(md5($_POST['customer_password'])); //Hash This 
+        if(strlen($customer_phoneno) !=8){
+            $err="Password length must be 8";
+        }
+        $customer_id = $_POST['customer_id'];  
+
+        //Insert Captured information to a database table
+        $postQuery = "INSERT INTO rpos_customers (customer_id, customer_name, customer_phoneno, customer_email, customer_password) VALUES(?,?,?,?,?)";
+        $postStmt = $mysqli->prepare($postQuery);
+        //bind paramaters
+        $rc = $postStmt->bind_param('sssss', $customer_id, $customer_name, $customer_phoneno, $customer_email, $customer_password);
+        $postStmt->execute();
+        //declare a varible which will be passed to alert function
+        if ($postStmt) {
+            $success = "Customer Account Created" && header("refresh:1; url=index.php");
+        } else {
+            $err = "Please Try Again Or Try Later";
+        }
+    }
+}
+require_once('partials/_head.php');
+require_once('config/code-generator.php');
+?>
